@@ -1,7 +1,10 @@
+import { CategoryEntity } from 'src/categories/entities/category.entity';
+import { UserEntity } from 'src/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   PrimaryGeneratedColumn,
   Timestamp,
   UpdateDateColumn,
@@ -26,5 +29,9 @@ export class ProductEntity {
   @UpdateDateColumn()
   updatedAt: Timestamp;
 
-  
+  @ManyToOne(() => UserEntity, (user) => user.products)
+  addedBy: UserEntity;
+
+  @ManyToOne(() => CategoryEntity, (cat) => cat.products)
+  category: CategoryEntity;
 }
