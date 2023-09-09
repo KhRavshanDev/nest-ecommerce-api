@@ -40,7 +40,10 @@ export class CategoriesService {
     });
   }
 
-  async update(id: number, fields: Partial<UpdateCategoryDto>):Promise<CategoryEntity> {
+  async update(
+    id: number,
+    fields: Partial<UpdateCategoryDto>,
+  ): Promise<CategoryEntity> {
     const category = await this.findOne(id);
     if (!category) throw new NotFoundException('Category not found');
     Object.assign(category, fields);
