@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { OrderEntity } from './entities/order.entity';
@@ -20,6 +20,7 @@ export class OrdersService {
     private readonly orderRepository: Repository<OrderEntity>,
     @InjectRepository(OrdersProductsEntity)
     private readonly opRepository: Repository<OrdersProductsEntity>,
+    @Inject(forwardRef(() => ProductsService))
     private readonly productService: ProductsService,
   ) {}
   async create(
@@ -87,6 +88,13 @@ export class OrdersService {
         user: true,
         products: { product: true },
       },
+    });
+  }
+
+  async findOneByProductId(id: number) {
+    return await this.opRepository.findOne({
+      relations: { product: true },
+      where: { product: { id: id } },
     });
   }
 

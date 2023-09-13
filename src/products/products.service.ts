@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException, forwardRef } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,6 +9,7 @@ import { UserEntity } from 'src/users/entities/user.entity';
 import { CategoriesService } from 'src/categories/categories.service';
 import { OrderStatus } from 'src/orders/enums/order-status.enum';
 import dataSource from 'db/data-source';
+import { OrdersService } from 'src/orders/orders.service';
 
 @Injectable()
 export class ProductsService {
@@ -16,6 +17,7 @@ export class ProductsService {
     @InjectRepository(ProductEntity)
     private readonly productRepository: Repository<ProductEntity>,
     private readonly categoryService: CategoriesService,
+    @Inject(forwardRef(() => OrdersService))private readonly orderService: OrdersService,
   ) {}
 
   async create(createProductDto: CreateProductDto, currentUser: UserEntity): Promise<ProductEntity> {
@@ -131,8 +133,12 @@ export class ProductsService {
     return await this.productRepository.save(product);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+  async remove(id: number) {
+    const product = await this.findOne(id);
+    const order = await this.orderService.findOneByProductId(product.id);
+    if (order) throw new BadRequestException('Products are in use');
+
+    return await this.productRepository.remove(product);
   }
 
   async updateStock(id: number, stock: number, status: string) {
